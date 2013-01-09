@@ -5,77 +5,110 @@ import scipy.misc
 import numpy
 from PyQt4 import QtGui, QtCore
 
-SIZE = 11
+RADIUS = 3
 
 class QDotSignaller(QtCore.QObject):
     deletedSignal = QtCore.pyqtSignal(int, int)
 
-signaller = QDotSignaller()
+SIGNALLER = QDotSignaller()
 
 class QDot(QtGui.QGraphicsEllipseItem):
     _hoverColor    = QtGui.QColor(255, 0, 0, 120)
     _normalColor   = QtGui.QColor(0, 0, 255, 120)
     
-    def __init__(self, x, y, size):
+    def __init__(self, x, y):
+        radius = RADIUS
+        size = radius * 2
         super(QDot, self).__init__(y - radius, x - radius, size, size)
         self._updateColor(self._normalColor)
-#        self.setAcceptHoverEvents(True)
-        self.setAcceptedMouseButtons(QtCore.Qt.LeftButton)
+        self.setAcceptHoverEvents(True)
+        self.setAcceptedMouseButtons(QtCore.Qt.RightButton)
         self.x = x
         self.y = y
-        self.size = size
+        self.radius = radius
         self._dragging = False
         
     def hoverEnterEvent(self, event):
         event.setAccepted(True)
         self._updateColor(self._hoverColor)
-        size = self.size * 2
-        radius = size / 2
+        radius = self.radius * 2
+        size = radius * 2
         self.setRect(self.y - radius, self.x - radius, size, size)
         self.setCursor(QtCore.Qt.BlankCursor)
 
     def hoverLeaveEvent(self, event):
         event.setAccepted(True)
         self._updateColor(self._normalColor)
-        size = self.size
-        radius = size / 2
+        radius = self.radius
+        size = radius * 2
         self.setRect(self.y - radius, self.x - radius, size, size)
         self.setCursor(QtCore.Qt.ArrowCursor)
 
     def mousePressEvent(self, event):
-        event.setAccepted(True)
-        signaller.deletedSignal.emit(self.x, self.y)
+        if QtCore.Qt.RightButton == event.button():
+            event.setAccepted(True)
+            SIGNALLER.deletedSignal.emit(self.x, self.y)
         
     def _updateColor(self, color):
         self.setPen(QtGui.QPen(color))
         self.setBrush(QtGui.QBrush(color, QtCore.Qt.SolidPattern))
 
 
+class MyGraphicsView(QtGui.QGraphicsView):
+
+    def __init__ (self, parent = None):
+        super (MyGraphicsView, self).__init__ (parent)
+        self.parent = parent
+
+    def mousePressEvent(self, event):
+        if QtCore.Qt.LeftButton == event.button():
+            event.setAccepted(True)
+            pos = QtCore.QPointF(self.mapToScene(event.pos()))
+            x = int(pos.y())
+            y = int(pos.x())
+            self.parent.add_dot(x, y)
+        else:
+            super (MyGraphicsView, self).mousePressEvent(event)
+
+
+class MyGraphicsScene(QtGui.QGraphicsScene):
+
+    def __init__(self, xdim, ydim, *args, **kwargs):
+        super(MyGraphicsScene, self).__init__(*args, **kwargs)
+        self.xdim = xdim
+        self.ydim = ydim
+        self.pos_to_dot = {}
+        SIGNALLER.deletedSignal.connect(self.remove_dot)
+
+    def add_dot(self, x, y):
+        if 0 <= x < self.xdim and 0 <= y < self.ydim:
+            dot = QDot(x, y)
+            self.addItem(dot)
+            self.pos_to_dot[(x, y)] = dot
+
+    def remove_dot(self, x, y):
+        dot = self.pos_to_dot.pop((x, y))
+        self.removeItem(dot)
+
+    @property
+    def dots(self):
+        return sorted(self.pos_to_dot.keys())
+        
+
 if __name__ == "__main__":
-    app = QtGui.QApplication(sys.argv)
-
     image = QtGui.QImage(sys.argv[1])
-    item = QtGui.QGraphicsPixmapItem(QtGui.QPixmap.fromImage(image))
+    dots = scipy.misc.imread(sys.argv[2])
 
-    scene = QtGui.QGraphicsScene();
+    app = QtGui.QApplication(sys.argv)
+    scene = MyGraphicsScene(dots.shape[0], dots.shape[1])
+
+    item = QtGui.QGraphicsPixmapItem(QtGui.QPixmap.fromImage(image))
     scene.addItem(item)
 
-    view = QtGui.QGraphicsView(scene)
+    view = MyGraphicsView(scene)
     view.show()
 
-    pos_to_dot = {}
-
-    def del_dot(x, y):
-        dot = pos_to_dot.pop((x, y))
-        scene.removeItem(dot)
-    signaller.deletedSignal.connect(del_dot)
-
-  
-    dots = scipy.misc.imread(sys.argv[2])
     for x, y in zip(*numpy.where(dots != 0)):
-        radius = SIZE / 2
-        dot = QDot(x, y, SIZE)
-        scene.addItem(dot)
-        pos_to_dot[(x, y)] = dot
+        scene.add_dot(x, y)
 
     sys.exit(app.exec_())
