@@ -11,25 +11,30 @@ class QDot(QtGui.QGraphicsEllipseItem):
     _hoverColor    = QtGui.QColor(255, 0, 0, 120)
     _normalColor   = QtGui.QColor(0, 0, 255, 120)
 
-    def __init__(self, x, y, width, height):
-        super(QDot, self).__init__(x, y, width, height)
+    def __init__(self, x, y, size):
+        super(QDot, self).__init__(y - radius, x - radius, size, size)
         self._updateColor(self._normalColor)
         self.setAcceptHoverEvents(True)
+        self.x = x
+        self.y = y
+        self.size = size
+        self._dragging = False
         
     def hoverEnterEvent(self, event):
         event.setAccepted(True)
         self._updateColor(self._hoverColor)
+        size = self.size * 2
+        radius = size / 2
+        self.setRect(self.y - radius, self.x - radius, size, size)
+        self.setCursor(QtCore.Qt.BlankCursor)
 
     def hoverLeaveEvent(self, event):
         event.setAccepted(True)
         self._updateColor(self._normalColor)
-
-    def mousePressEvent(self, event):
-        pass
-
-    def mouseReleaseEvent(self, event):
-        # delete self
-        pass
+        size = self.size
+        radius = size / 2
+        self.setRect(self.y - radius, self.x - radius, size, size)
+        self.setCursor(QtCore.Qt.ArrowCursor)
         
     def _updateColor(self, color):
         self.setPen(QtGui.QPen(color))
@@ -51,6 +56,6 @@ if __name__ == "__main__":
     dots = scipy.misc.imread(sys.argv[2])
     for x, y in zip(*numpy.where(dots != 0)):
         radius = SIZE / 2
-        scene.addItem(QDot(y - radius, x - radius, SIZE, SIZE))
+        scene.addItem(QDot(x, y, SIZE))
 
     sys.exit(app.exec_())
