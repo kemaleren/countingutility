@@ -44,8 +44,7 @@ class QDot(QtGui.QGraphicsEllipseItem):
 
     def mousePressEvent(self, event):
         event.setAccepted(True)
-        print 'deleting'
-        signaller.deletedSignal.emit(self.y, self.x)
+        signaller.deletedSignal.emit(self.x, self.y)
         
     def _updateColor(self, color):
         self.setPen(QtGui.QPen(color))
