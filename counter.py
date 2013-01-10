@@ -142,6 +142,8 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         SIGNALLER.deletedSignal.connect(self.remove_dot)
 
     def add_dot(self, x, y):
+        if (x, y) in pos_to_dot:
+            return
         if 0 <= x < self.xdim and 0 <= y < self.ydim:
             logging.info('adding dot at ({}, {})'.format(x, y))
             dot = QDot(x, y, self.radius)
