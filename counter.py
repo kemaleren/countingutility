@@ -25,6 +25,7 @@ from __future__ import division
 # 6. enable/disable viewing dots
 # 7. Preprocessing: train classifier and do connected components
 # 8. Do not require initial dots file.
+# 9. Allow multiple classes of dots.
 
 import logging
 import sys
