@@ -4,6 +4,13 @@ A simple utility for creating ground truth for counting algorithms.
 Author: Kemal Eren
 
 Usage:
+  count.py [-c <contrast>] <image> <dotsfile>
+  count.py -h | --help
+
+Options:
+  -h --help  Show this screen.
+  -c <contrast> --contrast=<contrast>  Adjust contrast. [default: 1.0]
+
 
 """
 
@@ -19,13 +26,13 @@ from __future__ import division
 # 7. Preprocessing: train classifier and do connected components
 # 8. Do not require initial dots file.
 
-import docopt
 import logging
 import sys
+
+from docopt import docopt
 import scipy.misc
 import numpy
 from PyQt4 import QtGui, QtCore
-
 from PIL import Image, ImageEnhance, ImageQt
 
 RADIUS = 3
@@ -39,7 +46,7 @@ SIGNALLER = QDotSignaller()
 class QDot(QtGui.QGraphicsEllipseItem):
     _hoverColor    = QtGui.QColor(255, 0, 0, 120)
     _normalColor   = QtGui.QColor(0, 0, 255, 120)
-    
+
     def __init__(self, x, y):
         radius = RADIUS
         size = radius * 2
@@ -51,7 +58,7 @@ class QDot(QtGui.QGraphicsEllipseItem):
         self.y = y
         self.radius = radius
         self._dragging = False
-        
+
     def hoverEnterEvent(self, event):
         event.setAccepted(True)
         self._updateColor(self._hoverColor)
@@ -72,7 +79,7 @@ class QDot(QtGui.QGraphicsEllipseItem):
         if QtCore.Qt.RightButton == event.button():
             event.setAccepted(True)
             SIGNALLER.deletedSignal.emit(self.x, self.y)
-        
+
     def _updateColor(self, color):
         self.setPen(QtGui.QPen(color))
         self.setBrush(QtGui.QBrush(color, QtCore.Qt.SolidPattern))
@@ -139,7 +146,9 @@ if __name__ == "__main__":
     format = '%(asctime)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=format)
 
-    dotsfile = sys.argv[2]
+    arguments = docopt(__doc__, argv=sys.argv[1:], help=True, version=None)
+
+    dotsfile = arguments['<dotsfile>']
     dots = scipy.misc.imread(dotsfile)
 
     pos_to_dot = {}
@@ -147,11 +156,11 @@ if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     scene = MyGraphicsScene(pos_to_dot, dots.shape[0], dots.shape[1])
 
-    imgfile = sys.argv[1]
+    imgfile = arguments['<image>']
     img = Image.open(imgfile).convert('RGBA')
 
     contrast = ImageEnhance.Contrast(img)
-    img = contrast.enhance(2)
+    img = contrast.enhance(float(arguments['--contrast']))
     qimg = ImageQt.ImageQt(img)
     pixmap = QtGui.QPixmap.fromImage(qimg)
 
