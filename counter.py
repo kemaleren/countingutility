@@ -93,6 +93,16 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
     @property
     def dots(self):
         return sorted(self.pos_to_dot.keys())
+
+
+def save():
+    print 'got save call'
+
+
+class MainWindow(QtGui.QMainWindow):
+    def __init__(self):
+        QtGui.QMainWindow.__init__(self)
+        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+S"), self, save)
         
 
 if __name__ == "__main__":
@@ -105,10 +115,14 @@ if __name__ == "__main__":
     item = QtGui.QGraphicsPixmapItem(QtGui.QPixmap.fromImage(image))
     scene.addItem(item)
 
-    view = MyGraphicsView(scene)
-    view.show()
-
     for x, y in zip(*numpy.where(dots != 0)):
         scene.add_dot(x, y)
+
+    view = MyGraphicsView(scene)
+
+    window = MainWindow()
+    window.setCentralWidget(view)
+
+    window.show()
 
     sys.exit(app.exec_())
