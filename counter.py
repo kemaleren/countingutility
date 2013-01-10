@@ -256,6 +256,9 @@ class MainWindow(QtGui.QMainWindow):
         h = random.random()
         c1 = QtGui.QColor.fromHsvF(h, 1, 1)
         c2 = QtGui.QColor.fromHsvF((h + 0.5) % 1, 1, 1)
+        QDot.normalColor = c1
+        QDot.hoverColor = c2
+
         for dot in self.pos_to_dot.values():
             dot.normalColor = c1
             dot.hoverColor = c2
