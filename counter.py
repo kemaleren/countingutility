@@ -1,11 +1,32 @@
+"""
+A simple utility for creating ground truth for counting algorithms.
+
+Author: Kemal Eren
+
+Usage:
+
+"""
+
 from __future__ import division
 
-import logging
+# TODO
+# 1. brightness/contrast adjustment
+# 2. overlapping dots visualization
+# 3. undo/redo
+# 4. closing without saving warning
+# 5. change size, color, and symbol for dots
+# 6. enable/disable viewing dots
+# 7. Preprocessing: train classifier and do connected components
+# 8. Do not require initial dots file.
 
+import docopt
+import logging
 import sys
 import scipy.misc
 import numpy
 from PyQt4 import QtGui, QtCore
+
+from PIL import Image, ImageEnhance, ImageQt
 
 RADIUS = 3
 CURSOR = QtCore.Qt.CrossCursor
@@ -111,13 +132,13 @@ class MainWindow(QtGui.QMainWindow):
         dots = self.pos_to_dot.keys()
         arr[zip(*dots)] = 1
         scipy.misc.imsave(self.dotsfile, arr)
-        
+
+
 
 if __name__ == "__main__":
     format = '%(asctime)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=format)
 
-    image = QtGui.QImage(sys.argv[1])
     dotsfile = sys.argv[2]
     dots = scipy.misc.imread(dotsfile)
 
@@ -126,7 +147,15 @@ if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     scene = MyGraphicsScene(pos_to_dot, dots.shape[0], dots.shape[1])
 
-    item = QtGui.QGraphicsPixmapItem(QtGui.QPixmap.fromImage(image))
+    imgfile = sys.argv[1]
+    img = Image.open(imgfile).convert('RGBA')
+
+    contrast = ImageEnhance.Contrast(img)
+    img = contrast.enhance(2)
+    qimg = ImageQt.ImageQt(img)
+    pixmap = QtGui.QPixmap.fromImage(qimg)
+
+    item = QtGui.QGraphicsPixmapItem(pixmap)
     scene.addItem(item)
 
     for x, y in zip(*numpy.where(dots != 0)):
