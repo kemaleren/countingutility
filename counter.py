@@ -216,11 +216,11 @@ class MainWindow(QtGui.QMainWindow):
         self.imgItem.setPixmap(pixmap)
 
     def alphaUp(self):
-        self.alpha = min(255, self.alpha + 20)
+        self.alpha = min(255, self.alpha + 50)
         self.setAlpha()
 
     def alphaDown(self):
-        self.alpha = max(0, self.alpha - 20)
+        self.alpha = max(0, self.alpha - 50)
         self.setAlpha()
 
     def setAlpha(self):
