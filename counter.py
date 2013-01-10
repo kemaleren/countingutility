@@ -16,9 +16,10 @@ Options:
   -h --help  Show this screen.
 
 Controls:
+  Ctrl + s    : save
   left click  : place dot
   right click : delete dot
-  Ctrl + s    : save
+  arrow keys  : pan
   =/-         : zoom in and out
   r/f         : resize dots
   e/d         : transparancy
