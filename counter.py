@@ -1,17 +1,16 @@
 """A utility for creating ground truth for counting algorithms.
 
 Usage:
-
   count.py <image> <dotfile>
   count.py -h | --help
 
 Arguments:
-
   <image>   : Path to an image file containing the data.
 
-  <dotfile> : Path to an image containing 0s, with single pixels set
-              to 1. If it does not exist, it will be created upon
-              saving; otherwise, it will be overwritten.
+  <dotfile> : Path to a numpy array file (*.pkl or *.npy or *.npz)
+              containing 0s, with single pixels set to 1. If it does
+              not exist, it will be created upon saving; otherwise, it
+              will be overwritten.
 
 Options:
   -h --help  Show this screen.
@@ -27,7 +26,7 @@ Controls:
   c/h         : randomize dot color / hover color
 
 Dependencies:
-  docopt, numpy, scipy, docopt, pyqt, pil
+  docopt, numpy, docopt, pyqt, pil
 
 Author: Kemal Eren
 
@@ -49,7 +48,6 @@ import sys
 import random
 
 from docopt import docopt
-import scipy.misc
 import numpy
 from PyQt4 import QtGui, QtCore
 from PIL import Image, ImageEnhance, ImageQt
@@ -196,7 +194,7 @@ class MainWindow(QtGui.QMainWindow):
         arr = numpy.zeros(self.shape)
         dots = self.pos_to_dot.keys()
         arr[zip(*dots)] = 1
-        scipy.misc.imsave(self.dotfile, arr)
+        numpy.save(self.dotfile, arr)
 
     def zoomIn(self):
         logging.info('zooming in')
@@ -278,10 +276,17 @@ if __name__ == "__main__":
 
     arguments = docopt(__doc__, argv=sys.argv[1:], help=True, version=None)
 
+    imgfile = arguments['<image>']
+    img = Image.open(imgfile).convert('RGBA')
+
     dotfile = arguments['<dotfile>']
-    dots = scipy.misc.imread(dotfile)
+    try:
+        dots = numpy.load(dotfile).astype(numpy.int8)
+    except IOError:
+        dots = numpy.zeros(img.size[::-1])
 
     if not numpy.all((dots == 0) + (dots == 1)):
+        print dots[numpy.where(((dots == 0) + (dots == 1)) != True)]
         raise Exception('dots file contains values besides 0 and 1')
 
     pos_to_dot = {}
@@ -289,8 +294,6 @@ if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     scene = MyGraphicsScene(pos_to_dot, dots.shape[0], dots.shape[1])
 
-    imgfile = arguments['<image>']
-    img = Image.open(imgfile).convert('RGBA')
     qimg = ImageQt.ImageQt(img)
     pixmap = QtGui.QPixmap.fromImage(qimg)
     imgItem = QtGui.QGraphicsPixmapItem(pixmap)
