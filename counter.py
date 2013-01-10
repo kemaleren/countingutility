@@ -16,20 +16,19 @@ Options:
 from __future__ import division
 
 # TODO
-# 0. port to ilastik
-# 1. brightness/contrast adjustment
-# 2. overlapping dots visualization
-# 3. undo/redo
-# 4. closing without saving warning
-# 5. change size, color, and symbol for dots
-# 6. enable/disable viewing dots
-# 7. Preprocessing: train classifier and do connected components
-# 8. Do not require initial dots file.
-# 9. Allow multiple classes of dots.
-# 10. Labeling aids, like masking part of the image.
+# - port to ilastik counting applet
+# - overlapping dots visualization
+# - undo/redo
+# - closing without saving warning
+# - enable/disable viewing dots
+# - preprocessing: train classifier and do connected components
+# - do not require initial dots file.
+# - allow multiple classes of dots.
+# - labeling aids, like masking part of the image.
 
 import logging
 import sys
+import random
 
 from docopt import docopt
 import scipy.misc
@@ -172,7 +171,7 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QShortcut(QtGui.QKeySequence("s"), self, self.contrastDown)
 
         QtGui.QShortcut(QtGui.QKeySequence("c"), self, self.randomNormalColor)
-        QtGui.QShortcut(QtGui.QKeySequence("C"), self, self.randomHoverColor)
+        QtGui.QShortcut(QtGui.QKeySequence("h"), self, self.randomHoverColor)
 
     def save(self):
         logging.info('saving ground truth to {}'.format(self.dotsfile))
