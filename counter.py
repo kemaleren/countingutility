@@ -85,11 +85,13 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
 
     def add_dot(self, x, y):
         if RADIUS <= x < self.xdim - RADIUS and RADIUS <= y < self.ydim - RADIUS:
+            logging.info('adding dot at ({}, {})'.format(x, y))
             dot = QDot(x, y)
             self.addItem(dot)
             self.pos_to_dot[(x, y)] = dot
 
     def remove_dot(self, x, y):
+        logging.info('removing dot at ({}, {})'.format(x, y))
         dot = self.pos_to_dot.pop((x, y))
         self.removeItem(dot)
 
