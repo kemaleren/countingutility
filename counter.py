@@ -11,12 +11,12 @@ Options:
   -h --help  Show this screen.
   -c <contrast> --contrast=<contrast>  Adjust contrast. [default: 1.0]
 
-
 """
 
 from __future__ import division
 
 # TODO
+# 0. port to ilastik
 # 1. brightness/contrast adjustment
 # 2. overlapping dots visualization
 # 3. undo/redo
@@ -26,6 +26,7 @@ from __future__ import division
 # 7. Preprocessing: train classifier and do connected components
 # 8. Do not require initial dots file.
 # 9. Allow multiple classes of dots.
+# 10. Labeling aids, like masking part of the image.
 
 import logging
 import sys
@@ -45,8 +46,8 @@ class QDotSignaller(QtCore.QObject):
 SIGNALLER = QDotSignaller()
 
 class QDot(QtGui.QGraphicsEllipseItem):
-    _hoverColor    = QtGui.QColor(255, 0, 0, 120)
-    _normalColor   = QtGui.QColor(0, 0, 255, 120)
+    _hoverColor    = QtGui.QColor(255, 0, 0, 200)
+    _normalColor   = QtGui.QColor(0, 0, 255, 200)
 
     def __init__(self, x, y):
         radius = RADIUS
