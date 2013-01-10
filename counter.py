@@ -22,7 +22,7 @@ Controls:
   arrow keys  : pan
   =/-         : zoom in and out
   r/f         : resize dots
-  e/d         : transparancy
+  e/d         : transparency
   w/s         : image contrast
   c           : randomize dot colors
 
