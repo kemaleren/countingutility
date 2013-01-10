@@ -1,8 +1,6 @@
 """
 A simple utility for creating ground truth for counting algorithms.
 
-Author: Kemal Eren
-
 Usage:
   count.py [-c <contrast>] <image> <dotsfile>
   count.py -h | --help
@@ -11,9 +9,19 @@ Options:
   -h --help  Show this screen.
   -c <contrast> --contrast=<contrast>  Adjust contrast. [default: 1.0]
 
-"""
+Controls:
+  left click  : place dot
+  right click : delete dot
+  Ctrl + s    : save
+  =/-         : zoom in and out
+  r/f         : resize dots
+  e/d         : transparancy
+  w/s         : image contrast
+  c/h         : randomize dot color / hover color
 
-from __future__ import division
+Author: Kemal Eren
+
+"""
 
 # TODO
 # - port to ilastik counting applet
