@@ -8,6 +8,7 @@ import numpy
 from PyQt4 import QtGui, QtCore
 
 RADIUS = 3
+CURSOR = QtCore.Qt.CrossCursor
 
 class QDotSignaller(QtCore.QObject):
     deletedSignal = QtCore.pyqtSignal(int, int)
@@ -44,7 +45,7 @@ class QDot(QtGui.QGraphicsEllipseItem):
         radius = self.radius
         size = radius * 2
         self.setRect(self.y - radius, self.x - radius, size, size)
-        self.setCursor(QtCore.Qt.ArrowCursor)
+        self.setCursor(CURSOR)
 
     def mousePressEvent(self, event):
         if QtCore.Qt.RightButton == event.button():
@@ -83,7 +84,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         SIGNALLER.deletedSignal.connect(self.remove_dot)
 
     def add_dot(self, x, y):
-        if 0 <= x < self.xdim and 0 <= y < self.ydim:
+        if RADIUS <= x < self.xdim - RADIUS and RADIUS <= y < self.ydim - RADIUS:
             dot = QDot(x, y)
             self.addItem(dot)
             self.pos_to_dot[(x, y)] = dot
@@ -92,13 +93,9 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         dot = self.pos_to_dot.pop((x, y))
         self.removeItem(dot)
 
-    @property
-    def dots(self):
-        return sorted(self.pos_to_dot.keys())
-
-
 
 class MainWindow(QtGui.QMainWindow):
+
     def __init__(self, dotsfile, pos_to_dot, shape):
         QtGui.QMainWindow.__init__(self)
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+S"), self, self.save)
@@ -137,6 +134,16 @@ if __name__ == "__main__":
 
     window = MainWindow(dotsfile, pos_to_dot, dots.shape)
     window.setCentralWidget(view)
+
+    desktop = app.desktop()
+    geom = desktop.screenGeometry()
+    sr = view.sceneRect()
+    QtCore.QRectF(geom)
+    sx = (geom.width() - 10 * RADIUS) / (sr.width())
+    sy = (geom.height() - 10 * RADIUS) / (sr.height())
+
+    view.scale(sx, sy)
+    view.setCursor(CURSOR)
 
     window.show()
 
