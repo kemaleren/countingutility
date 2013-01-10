@@ -1,5 +1,7 @@
 from __future__ import division
 
+import logging
+
 import sys
 import scipy.misc
 import numpy
@@ -73,11 +75,11 @@ class MyGraphicsView(QtGui.QGraphicsView):
 
 class MyGraphicsScene(QtGui.QGraphicsScene):
 
-    def __init__(self, xdim, ydim, *args, **kwargs):
+    def __init__(self, pos_to_dot, xdim, ydim, *args, **kwargs):
         super(MyGraphicsScene, self).__init__(*args, **kwargs)
         self.xdim = xdim
         self.ydim = ydim
-        self.pos_to_dot = {}
+        self.pos_to_dot = pos_to_dot
         SIGNALLER.deletedSignal.connect(self.remove_dot)
 
     def add_dot(self, x, y):
@@ -95,22 +97,35 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         return sorted(self.pos_to_dot.keys())
 
 
-def save():
-    print 'got save call'
-
 
 class MainWindow(QtGui.QMainWindow):
-    def __init__(self):
+    def __init__(self, dotsfile, pos_to_dot, shape):
         QtGui.QMainWindow.__init__(self)
-        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+S"), self, save)
+        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+S"), self, self.save)
+        self.dotsfile = dotsfile
+        self.pos_to_dot = pos_to_dot
+        self.shape = shape
+
+    def save(self):
+        logging.info('saving ground truth')
+        arr = numpy.zeros(self.shape)
+        dots = self.pos_to_dot.keys()
+        arr[zip(*dots)] = 1
+        scipy.misc.imsave(self.dotsfile, arr)
         
 
 if __name__ == "__main__":
+    format = '%(asctime)s - %(levelname)s - %(message)s'
+    logging.basicConfig(level=logging.INFO, format=format)
+
     image = QtGui.QImage(sys.argv[1])
-    dots = scipy.misc.imread(sys.argv[2])
+    dotsfile = sys.argv[2]
+    dots = scipy.misc.imread(dotsfile)
+
+    pos_to_dot = {}
 
     app = QtGui.QApplication(sys.argv)
-    scene = MyGraphicsScene(dots.shape[0], dots.shape[1])
+    scene = MyGraphicsScene(pos_to_dot, dots.shape[0], dots.shape[1])
 
     item = QtGui.QGraphicsPixmapItem(QtGui.QPixmap.fromImage(image))
     scene.addItem(item)
@@ -120,7 +135,7 @@ if __name__ == "__main__":
 
     view = MyGraphicsView(scene)
 
-    window = MainWindow()
+    window = MainWindow(dotsfile, pos_to_dot, dots.shape)
     window.setCentralWidget(view)
 
     window.show()
