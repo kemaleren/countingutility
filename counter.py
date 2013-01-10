@@ -281,6 +281,9 @@ if __name__ == "__main__":
     dotfile = arguments['<dotfile>']
     dots = scipy.misc.imread(dotfile)
 
+    if not numpy.all((dots == 0) + (dots == 1)):
+        raise Exception('dots file contains values besides 0 and 1')
+
     pos_to_dot = {}
 
     app = QtGui.QApplication(sys.argv)
