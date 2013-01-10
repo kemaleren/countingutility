@@ -1,13 +1,20 @@
-"""
-A simple utility for creating ground truth for counting algorithms.
+"""A utility for creating ground truth for counting algorithms.
 
 Usage:
-  count.py [-c <contrast>] <image> <dotsfile>
+
+  count.py <image> <dotfile>
   count.py -h | --help
+
+Arguments:
+
+  <image>   : Path to an image file containing the data.
+
+  <dotfile> : Path to an image containing 0s, with single pixels set
+              to 1. If it does not exist, it will be created upon
+              saving; otherwise, it will be overwritten.
 
 Options:
   -h --help  Show this screen.
-  -c <contrast> --contrast=<contrast>  Adjust contrast. [default: 1.0]
 
 Controls:
   left click  : place dot
@@ -18,6 +25,9 @@ Controls:
   e/d         : transparancy
   w/s         : image contrast
   c/h         : randomize dot color / hover color
+
+Dependencies:
+  docopt, numpy, scipy, docopt, pyqt, pil
 
 Author: Kemal Eren
 
@@ -151,9 +161,9 @@ def randomColor():
 
 class MainWindow(QtGui.QMainWindow):
 
-    def __init__(self, dotsfile, pos_to_dot, shape, img, imgItem):
+    def __init__(self, dotfile, pos_to_dot, shape, img, imgItem):
         QtGui.QMainWindow.__init__(self)
-        self.dotsfile = dotsfile
+        self.dotfile = dotfile
         self.pos_to_dot = pos_to_dot
         self.shape = shape
 
@@ -182,11 +192,11 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QShortcut(QtGui.QKeySequence("h"), self, self.randomHoverColor)
 
     def save(self):
-        logging.info('saving ground truth to {}'.format(self.dotsfile))
+        logging.info('saving ground truth to {}'.format(self.dotfile))
         arr = numpy.zeros(self.shape)
         dots = self.pos_to_dot.keys()
         arr[zip(*dots)] = 1
-        scipy.misc.imsave(self.dotsfile, arr)
+        scipy.misc.imsave(self.dotfile, arr)
 
     def zoomIn(self):
         logging.info('zooming in')
@@ -268,8 +278,8 @@ if __name__ == "__main__":
 
     arguments = docopt(__doc__, argv=sys.argv[1:], help=True, version=None)
 
-    dotsfile = arguments['<dotsfile>']
-    dots = scipy.misc.imread(dotsfile)
+    dotfile = arguments['<dotfile>']
+    dots = scipy.misc.imread(dotfile)
 
     pos_to_dot = {}
 
@@ -288,7 +298,7 @@ if __name__ == "__main__":
 
     view = MyGraphicsView(app, scene)
 
-    window = MainWindow(dotsfile, pos_to_dot, dots.shape, img, imgItem)
+    window = MainWindow(dotfile, pos_to_dot, dots.shape, img, imgItem)
     window.setCentralWidget(view)
 
     window.show()
