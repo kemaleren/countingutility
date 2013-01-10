@@ -23,7 +23,7 @@ Controls:
   r/f         : resize dots
   e/d         : transparancy
   w/s         : image contrast
-  c/h         : randomize dot color / hover color
+  c           : randomize dot colors
 
 Dependencies:
   docopt, numpy, docopt, pyqt, pil
@@ -153,10 +153,6 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         self.removeItem(dot)
 
 
-def randomColor():
-    return QtGui.QColor.fromHsvF(random.random(), 1, 1)
-
-
 class MainWindow(QtGui.QMainWindow):
 
     def __init__(self, dotfile, pos_to_dot, shape, img, imgItem):
@@ -186,8 +182,7 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QShortcut(QtGui.QKeySequence("w"), self, self.contrastUp)
         QtGui.QShortcut(QtGui.QKeySequence("s"), self, self.contrastDown)
 
-        QtGui.QShortcut(QtGui.QKeySequence("c"), self, self.randomNormalColor)
-        QtGui.QShortcut(QtGui.QKeySequence("h"), self, self.randomHoverColor)
+        QtGui.QShortcut(QtGui.QKeySequence("c"), self, self.randomColor)
 
     def save(self):
         logging.info('saving ground truth to {}'.format(self.dotfile))
@@ -255,18 +250,14 @@ class MainWindow(QtGui.QMainWindow):
         for dot in self.pos_to_dot.values():
             dot.radius = self.radius
 
-    def randomNormalColor(self):
-        logging.info('random normal color')
-        c = randomColor()
+    def randomColor(self):
+        logging.info('random color')
+        h = random.random()
+        c1 = QtGui.QColor.fromHsvF(h, 1, 1)
+        c2 = QtGui.QColor.fromHsvF((h + 0.5) % 1, 1, 1)
         for dot in self.pos_to_dot.values():
-            dot.normalColor = c
-            dot.updateColor()
-
-    def randomHoverColor(self):
-        logging.info('random hover color')
-        c = randomColor()
-        for dot in self.pos_to_dot.values():
-            dot.hoverColor = c
+            dot.normalColor = c1
+            dot.hoverColor = c2
             dot.updateColor()
 
 
