@@ -272,7 +272,7 @@ class MainWindow(QtGui.QMainWindow):
 
 if __name__ == "__main__":
     format = '%(asctime)s - %(levelname)s - %(message)s'
-    logging.basicConfig(level=logging.INFO, format=format)
+    logging.basicConfig(level=logging.WARNING, format=format)
 
     arguments = docopt(__doc__, argv=sys.argv[1:], help=True, version=None)
 
