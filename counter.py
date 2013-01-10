@@ -286,7 +286,6 @@ if __name__ == "__main__":
         dots = numpy.zeros(img.size[::-1])
 
     if not numpy.all((dots == 0) + (dots == 1)):
-        print dots[numpy.where(((dots == 0) + (dots == 1)) != True)]
         raise Exception('dots file contains values besides 0 and 1')
 
     pos_to_dot = {}
