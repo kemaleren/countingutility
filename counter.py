@@ -1,7 +1,7 @@
 """A utility for creating ground truth for counting algorithms.
 
 Usage:
-  count.py <image> <dotfile>
+  count.py [options] <image> <dotfile>
   count.py -h | --help
 
 Arguments:
@@ -13,7 +13,8 @@ Arguments:
               otherwise, it will be overwritten.
 
 Options:
-  -h --help  Show this screen.
+  -h --help            Show this screen.
+  -r, --reference IMG  Use a reference image.
 
 Mouse controls:
   left click  : place dot
@@ -28,6 +29,7 @@ Key controls :
   r/f         : resize dots
   e/d         : dot transparency
   w/s         : image contrast
+  Space       : toggle reference image
   c           : randomize dot colors
 
 Dependencies:
@@ -38,6 +40,7 @@ Author: Kemal Eren
 """
 
 # TODO
+# - generalize multiple channels/reference images
 # - overlapping dots visualization
 # - undo/redo
 # - preprocessing: train classifier and do connected components
@@ -201,7 +204,8 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
 
 class MainWindow(QtGui.QMainWindow):
 
-    def __init__(self, dotfile, pos_to_dot, shape, img, imgItem):
+    def __init__(self, dotfile, pos_to_dot, shape, img, imgItem,
+                 ref=None, ref_imgItem=None):
         QtGui.QMainWindow.__init__(self)
         self.dotfile = dotfile
         self.pos_to_dot = pos_to_dot
@@ -211,8 +215,14 @@ class MainWindow(QtGui.QMainWindow):
         self.contrast = 1.0
 
         self.contrastEnhancer = ImageEnhance.Contrast(img)
+        if ref is not None:
+            self.ref_contrastEnhancer = ImageEnhance.Contrast(ref)
+            self.ref_contrast = 1.0
 
         self.imgItem = imgItem
+        self.ref_imgItem = ref_imgItem
+
+        self.ref_active = False
 
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+S"), self, self.save)
 
@@ -229,6 +239,9 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QShortcut(QtGui.QKeySequence("s"), self, self.contrastDown)
 
         QtGui.QShortcut(QtGui.QKeySequence("c"), self, self.randomColor)
+
+        if ref is not None and ref_imgItem is not None:
+            QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Space), self, self.toggleReference)
 
         self.dirty = False
 
@@ -255,19 +268,30 @@ class MainWindow(QtGui.QMainWindow):
         self.centralWidget().scale(0.5, 0.5)
 
     def contrastUp(self):
-        self.contrast += 1
+        if self.ref_active:
+            self.ref_contrast += 1
+        else:
+            self.contrast += 1
         self.setContrast()
 
     def contrastDown(self):
-        self.contrast -= 1
+        if self.ref_active:
+            self.ref_contrast -= 1
+        else:
+            self.contrast -= 1
         self.setContrast()
 
     def setContrast(self):
-        logging.info('setting contrast to {}'.format(self.contrast))
-        img = self.contrastEnhancer.enhance(self.contrast)
-        qimg = ImageQt.ImageQt(img)
-        pixmap = QtGui.QPixmap.fromImage(qimg)
-        self.imgItem.setPixmap(pixmap)
+        if self.ref_active:
+            img = self.ref_contrastEnhancer.enhance(self.ref_contrast)
+            qimg = ImageQt.ImageQt(img)
+            pixmap = QtGui.QPixmap.fromImage(qimg)
+            self.ref_imgItem.setPixmap(pixmap)
+        else:
+            img = self.contrastEnhancer.enhance(self.contrast)
+            qimg = ImageQt.ImageQt(img)
+            pixmap = QtGui.QPixmap.fromImage(qimg)
+            self.imgItem.setPixmap(pixmap)
 
     def alphaUp(self):
         self.alpha = min(255, self.alpha + 50)
@@ -328,6 +352,15 @@ class MainWindow(QtGui.QMainWindow):
             else:
                 event.ignore()
 
+    def toggleReference(self):
+        if self.ref_active:
+            self.imgItem.setVisible(True)
+            self.ref_imgItem.setVisible(False)
+        else:
+            self.imgItem.setVisible(False)
+            self.ref_imgItem.setVisible(True)
+        self.ref_active = not self.ref_active
+
 
 if __name__ == "__main__":
     format = '%(asctime)s - %(levelname)s - %(message)s'
@@ -357,12 +390,25 @@ if __name__ == "__main__":
     imgItem = QtGui.QGraphicsPixmapItem(pixmap)
     scene.addItem(imgItem)
 
+    kwargs = {}
+
+    if arguments['--reference'] is not None:
+        ref_imgfile = arguments['--reference']
+        ref_img = Image.open(ref_imgfile).convert('RGBA')
+        ref_qimg = ImageQt.ImageQt(ref_img)
+        ref_pixmap = QtGui.QPixmap.fromImage(ref_qimg)
+        ref_imgItem = QtGui.QGraphicsPixmapItem(ref_pixmap)
+        scene.addItem(ref_imgItem)
+        ref_imgItem.setVisible(False)
+        kwargs['ref'] = ref_img
+        kwargs['ref_imgItem'] = ref_imgItem
+
     for x, y in zip(*numpy.where(dots != 0)):
         scene.add_dot(x, y)
 
     view = MyGraphicsView(app, scene)
 
-    window = MainWindow(dotfile, pos_to_dot, dots.shape, img, imgItem)
+    window = MainWindow(dotfile, pos_to_dot, dots.shape, img, imgItem, **kwargs)
     window.setCentralWidget(view)
 
     window.show()
