@@ -240,7 +240,7 @@ class MainWindow(QtGui.QMainWindow):
         self.centralWidget().scene().radius = val
 
     def radiusUp(self):
-        self.radius += 0.5
+        self.radius = min(20, self.radius + 0.5)
         self.setRadius()
 
     def radiusDown(self):
