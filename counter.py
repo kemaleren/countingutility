@@ -15,12 +15,16 @@ Arguments:
 Options:
   -h --help  Show this screen.
 
-Controls:
+Mouse controls:
   left click  : place dot
   right click : delete dot
+  Ctrl + drag : pan
+  mousewheel  : zoom
+
+Key controls :
   Ctrl + s    : save
   arrow keys  : pan
-  =/-         : zoom in and out
+  =/-         : zoom
   r/f         : resize dots
   e/d         : dot transparency
   w/s         : image contrast
