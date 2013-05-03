@@ -34,13 +34,10 @@ Author: Kemal Eren
 """
 
 # TODO
-# - port to ilastik counting applet
+# - closing without saving warning
 # - overlapping dots visualization
 # - undo/redo
-# - closing without saving warning
-# - enable/disable viewing dots
 # - preprocessing: train classifier and do connected components
-# - do not require initial dots file.
 # - allow multiple classes of dots.
 # - labeling aids, like masking part of the image.
 
@@ -65,6 +62,8 @@ class QDot(QtGui.QGraphicsEllipseItem):
     normalColor   = QtGui.QColor(0, 0, 255)
 
     def __init__(self, x, y, radius):
+        x = x + 0.5
+        y = y + 0.5
         size = radius * 2
         super(QDot, self).__init__(y - radius, x - radius, size, size)
         self.setAcceptHoverEvents(True)
@@ -79,14 +78,14 @@ class QDot(QtGui.QGraphicsEllipseItem):
         event.setAccepted(True)
         self.hovering = True
         self.setCursor(QtCore.Qt.BlankCursor)
-        self.radius = self.radius # double radius size in setter
+        self.radius = self.radius # modified radius b/c hovering
         self.updateColor()
 
     def hoverLeaveEvent(self, event):
         event.setAccepted(True)
         self.hovering = False
         self.setCursor(CURSOR)
-        self.radius = self.radius # half radius
+        self.radius = self.radius # no longer hovering
         self.updateColor()
 
     def mousePressEvent(self, event):
@@ -103,7 +102,7 @@ class QDot(QtGui.QGraphicsEllipseItem):
         self._radius = val
         radius = self.radius
         if self.hovering:
-            radius *= 2
+            radius *= 1.25
         size = radius * 2
         self.setRect(self.y - radius, self.x - radius, size, size)
 
@@ -137,7 +136,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         super(MyGraphicsScene, self).__init__(*args, **kwargs)
         self.xdim = xdim
         self.ydim = ydim
-        self.radius = 1
+        self.radius = 0.5
         self.pos_to_dot = pos_to_dot
         SIGNALLER.deletedSignal.connect(self.remove_dot)
 
@@ -241,11 +240,11 @@ class MainWindow(QtGui.QMainWindow):
         self.centralWidget().scene().radius = val
 
     def radiusUp(self):
-        self.radius += 1
+        self.radius += 0.5
         self.setRadius()
 
     def radiusDown(self):
-        self.radius = max(1, self.radius - 1)
+        self.radius = max(0.5, self.radius - 0.5)
         self.setRadius()
 
     def setRadius(self):
