@@ -1,8 +1,8 @@
 """A utility for creating ground truth for counting algorithms.
 
 Usage:
-  count.py [options] <image> <dotfile>
-  count.py -h | --help
+  counter.py [options] <image> <dotfile>
+  counter.py -h | --help
 
 Arguments:
   <image>   : Path to an image file containing the data.
