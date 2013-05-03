@@ -34,7 +34,6 @@ Author: Kemal Eren
 """
 
 # TODO
-# - closing without saving warning
 # - overlapping dots visualization
 # - undo/redo
 # - preprocessing: train classifier and do connected components
@@ -53,6 +52,7 @@ from PIL import Image, ImageEnhance, ImageQt
 CURSOR = QtCore.Qt.CrossCursor
 
 class QDotSignaller(QtCore.QObject):
+    createdSignal = QtCore.pyqtSignal(int, int)
     deletedSignal = QtCore.pyqtSignal(int, int)
 
 SIGNALLER = QDotSignaller()
@@ -148,6 +148,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
             dot = QDot(x, y, self.radius)
             self.addItem(dot)
             self.pos_to_dot[(x, y)] = dot
+            SIGNALLER.createdSignal.emit(x, y)
 
     def remove_dot(self, x, y):
         logging.info('removing dot at ({}, {})'.format(x, y))
@@ -186,12 +187,21 @@ class MainWindow(QtGui.QMainWindow):
 
         QtGui.QShortcut(QtGui.QKeySequence("c"), self, self.randomColor)
 
+        self.dirty = False
+
+        SIGNALLER.deletedSignal.connect(self.setDirty)
+        SIGNALLER.createdSignal.connect(self.setDirty)
+
+    def setDirty(self, *args, **kwargs):
+        self.dirty = True
+
     def save(self):
         logging.info('saving ground truth to {}'.format(self.dotfile))
         arr = numpy.zeros(self.shape)
         dots = self.pos_to_dot.keys()
         arr[zip(*dots)] = 1
         numpy.save(self.dotfile, arr)
+        self.dirty = False
 
     def zoomIn(self):
         logging.info('zooming in')
@@ -264,6 +274,16 @@ class MainWindow(QtGui.QMainWindow):
             dot.normalColor = c1
             dot.hoverColor = c2
             dot.updateColor()
+
+    def closeEvent(self, event):
+        if self.dirty:
+            quit_msg = "You have unsaved changes. Are you sure you want to quit?"
+            reply = QtGui.QMessageBox.question(self, 'Message',
+                                               quit_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            if reply == QtGui.QMessageBox.Yes:
+                event.accept()
+            else:
+                event.ignore()
 
 
 if __name__ == "__main__":
