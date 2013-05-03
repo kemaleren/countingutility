@@ -8,26 +8,26 @@ Arguments:
   <image>   : Path to an image file containing the data.
 
   <dotfile> : Path to a numpy array file (*.pkl or *.npy or *.npz)
-              containing 0s, with single pixels set to 1. If it does
-              not exist, it will be created upon saving; otherwise, it
-              will be overwritten.
+              containing a binary array of the same shape as <image>.
+              If it does not exist, it will be created upon saving;
+              otherwise, it will be overwritten.
 
 Options:
   -h --help  Show this screen.
 
 Controls:
-  Ctrl + s    : save
   left click  : place dot
   right click : delete dot
+  Ctrl + s    : save
   arrow keys  : pan
   =/-         : zoom in and out
   r/f         : resize dots
-  e/d         : transparency
+  e/d         : dot transparency
   w/s         : image contrast
   c           : randomize dot colors
 
 Dependencies:
-  docopt, numpy, docopt, pyqt, pil
+  numpy, pyqt, pil, docopt
 
 Author: Kemal Eren
 
