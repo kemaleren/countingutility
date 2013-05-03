@@ -118,16 +118,55 @@ class MyGraphicsView(QtGui.QGraphicsView):
         super (MyGraphicsView, self).__init__ (parent)
         self.parent = parent
         self.setCursor(CURSOR)
+        self.setDragMode(QtGui.QGraphicsView.RubberBandDrag)
+        self._isPanning = False
+        self._mousePressed = False
 
-    def mousePressEvent(self, event):
-        if QtCore.Qt.LeftButton == event.button():
-            event.setAccepted(True)
-            pos = QtCore.QPointF(self.mapToScene(event.pos()))
-            x = int(pos.y())
-            y = int(pos.x())
-            self.parent.add_dot(x, y)
+
+    def mousePressEvent(self,  event):
+        if event.button() == QtCore.Qt.LeftButton:
+            self._mousePressed = True
+            event.accept()
+            if self._isPanning:
+                self._dragPos = event.pos()
+            else:
+                pos = QtCore.QPointF(self.mapToScene(event.pos()))
+                x = int(pos.y())
+                y = int(pos.x())
+                self.parent.add_dot(x, y)
         else:
             super (MyGraphicsView, self).mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self._mousePressed and self._isPanning:
+            newPos = event.pos()
+            diff = newPos - self._dragPos
+            self._dragPos = newPos
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - diff.x())
+            self.verticalScrollBar().setValue(self.verticalScrollBar().value() - diff.y())
+            event.accept()
+        else:
+            super(MyGraphicsView, self).mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton:
+            if not (event.modifiers() & QtCore.Qt.ControlModifier):
+                self._isPanning = False
+            self._mousePressed = False
+        super(MyGraphicsView, self).mouseReleaseEvent(event)
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Control and not self._mousePressed:
+            self._isPanning = True
+        else:
+            super(MyGraphicsView, self).keyPressEvent(event)
+
+    def keyReleaseEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Control:
+            if not self._mousePressed:
+                self._isPanning = False
+        else:
+            super(MyGraphicsView, self).keyPressEvent(event)
 
 
 class MyGraphicsScene(QtGui.QGraphicsScene):
